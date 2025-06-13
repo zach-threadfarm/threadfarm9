@@ -2,21 +2,27 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setTimeout(() => {
-      setLoading(false);
-      setError('Invalid credentials (dummy)');
-    }, 1000);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   return (
@@ -27,7 +33,7 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
-            className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1a7f37]"
+            className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1a7f37] text-black"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
@@ -35,7 +41,7 @@ export default function LoginPage() {
           <input
             type="password"
             placeholder="Password"
-            className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1a7f37]"
+            className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1a7f37] text-black"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required

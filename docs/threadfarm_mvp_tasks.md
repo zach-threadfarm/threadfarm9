@@ -29,71 +29,71 @@ Build Threadfarm – an AI-powered tool that converts audio, video, or text file
 
 ### 1.2 Landing Page Creation
 - [x] Create `/app/page.tsx` with hero section, subheadline, CTA button
-- [ ] Add 4-step progress stepper (Upload → Transcribe → Generate → Publish)
-- [ ] Style with Tailwind for clean, modern look
-- [ ] Responsive design for mobile and desktop
-- [ ] "Get Started" button linking to `/login`
+- [x] Add 4-step progress stepper (Upload → Transcribe → Generate → Publish)
+- [x] Style with Tailwind for clean, modern look
+- [x] Responsive design for mobile and desktop
+- [x] "Get Started" button linking to `/login`
 
 
 ### 1.3 Authentication Pages
-- [ ] Create `/app/login/page.tsx` and `/app/signup/page.tsx` with email/password forms
-- [ ] Add validation, loading states, error messages
-- [ ] Consistent style with landing page
+- [x] Create `/app/login/page.tsx` and `/app/signup/page.tsx` with email/password forms
+- [x] Add validation, loading states, error messages
+- [x] Consistent style with landing page
 
 
 ### 1.5 Create Thread Flow – Step 1 (Upload)
-- [ ] `/app/create/page.tsx` to host 4-step flow
-- [ ] Step 1: Drag & drop zone with file picker
-- [ ] YouTube URL input validation
-- [ ] Show file preview after selection
-- [ ] "Next" button only enabled with valid input
+- [x] `/app/create/page.tsx` to host 4-step flow
+- [x] Step 1: Drag & drop zone with file picker
+- [x] YouTube URL input validation
+- [x] Show file preview after selection
+- [x] "Next" button only enabled with valid input
 
 ### 1.6 Create Thread Flow – Step 2 (Transcribe & Edit)
-- [ ] Display dummy transcript in editable text area
-- [ ] Character count indicator
-- [ ] "Regenerate Transcript" button (dummy)
-- [ ] "Previous" and "Next" navigation
+- [x] Display dummy transcript in editable text area
+- [x] Character count indicator
+- [x] "Regenerate Transcript" button (dummy)
+- [x] "Previous" and "Next" navigation
 
 ### 1.7 Create Thread Flow – Step 3 (Generate Thread)
-- [ ] Settings panel: max posts (slider), characters per post
-- [ ] Display generated dummy posts in editable cards
-- [ ] Drag & drop reorder for posts
-- [ ] Individual post edit inline
-- [ ] "Add Image" placeholders
+- [x] Settings panel: max posts (slider), characters per post
+- [x] Display generated dummy posts in editable cards
+- [x] Drag & drop reorder for posts
+- [x] Individual post edit inline
+- [x] "Add Image" placeholders
 
 ### 1.8 Create Thread Flow – Step 4 (Edit & Publish)
-- [ ] Final preview of thread (all posts, title editable)
-- [ ] Edit thread title
-- [ ] Add/reorder images in posts
-- [ ] "Save as Draft" and "Publish" buttons (dummy actions)
-- [ ] Success message/confirmation screen after publish
+- [x] Final preview of thread (all posts, title editable)
+- [x] Edit thread title
+- [x] Add/reorder images in posts
+- [x] "Save as Draft" and "Publish" buttons (dummy actions)
+- [x] Success message/confirmation screen after publish
 
 ### 1.9 Settings Page
-- [ ] Create `/app/settings/page.tsx` with user profile (name, email, avatar placeholder)
-- [ ] Dummy social media connections (X, Instagram)
-- [ ] Subscription/billing placeholder
-- [ ] Account deletion option
+- [x] Create `/app/settings/page.tsx` with user profile (name, email, avatar placeholder)
+- [x] Dummy social media connections (X, Instagram)
+- [x] Subscription/billing placeholder
+- [x] Account deletion option
 
 ---
 
 ## 🟧 Phase 2: Backend (Supabase)
 
 ### 2.1 Supabase Setup
-- [ ] Create Supabase project and enable email auth
-- [ ] Configure RLS and storage buckets for file uploads
-- [ ] Set up `.env.local` with Supabase credentials
+- [x] Create Supabase project and enable email auth
+- [x] Configure RLS and storage buckets for file uploads
+- [x] Set up `.env.local` with Supabase credentials
 
 ### 2.2 Database Schema
-- [ ] `users` table
-- [ ] `threads` table
-- [ ] `posts` table with `image_url` support
-- [ ] Indexes and FK constraints
-- [ ] Test data via Supabase dashboard
+- [x] `users` table
+- [x] `threads` table
+- [x] `posts` table with `image_url` support
+- [x] Indexes and FK constraints
+- [x] Test data via Supabase dashboard
 
 ### 2.3 Storage Setup
-- [ ] Create storage bucket: `thread-files` (audio, video, text folders)
-- [ ] Policy for authenticated users
-- [ ] Test upload via Supabase UI
+- [x] Create storage bucket: `thread-files` (audio, video, text folders)
+- [x] Policy for authenticated users
+- [x] Test upload via Supabase UI
 
 ### 2.4 API Routes
 - [ ] `/api/auth/route.ts` for auth handling
@@ -178,4 +178,7 @@ Build Threadfarm – an AI-powered tool that converts audio, video, or text file
 - Dummy data first (Phase 1), real data later (Phase 3).
 - Test on mobile/desktop, confirm images match final UI.
 
-Let’s do this! 🚀
+Let's do this! 🚀
+
+NEXT_PUBLIC_SUPABASE_URL=https://kpzfndeuhvdxrcglpqco.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key_here

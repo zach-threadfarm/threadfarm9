@@ -3,6 +3,8 @@
 import DashboardNav from '../components/DashboardNav';
 import { Twitter, Instagram } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useRouter } from 'next/navigation';
 
 function showToast(message: string) {
   const toast = document.createElement('div');
@@ -27,6 +29,7 @@ export default function SettingsPage() {
   const [currentPlan, setCurrentPlan] = useState<'Starter' | 'Growth' | 'Scale'>('Growth');
   const planPrices = { Starter: 14.99, Growth: 29, Scale: 59 };
   const renewalDate = '2024-08-15';
+  const router = useRouter();
 
   const handleUpgrade = (plan: 'Starter' | 'Growth' | 'Scale') => {
     setCurrentPlan(plan);
@@ -37,6 +40,11 @@ export default function SettingsPage() {
     setCurrentPlan('Starter');
     setModal(null);
     showToast('Subscription cancelled (dummy)');
+  };
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    showToast('Logged out');
+    setTimeout(() => router.push('/'), 1200);
   };
 
   return (
@@ -102,6 +110,12 @@ export default function SettingsPage() {
               </>
             )}
           </div>
+          <button
+            className="mt-4 px-4 py-2 rounded-lg font-semibold bg-[#1a7f37] text-white hover:bg-[#17692e] transition-colors duration-200 w-max"
+            onClick={handleLogout}
+          >
+            Log Out
+          </button>
         </section>
         {/* Connected Accounts Section */}
         <section className="max-w-xl mx-auto bg-white rounded-3xl shadow-2xl p-10 flex flex-col gap-6 border border-[#f3f4f6] mb-10">
@@ -299,6 +313,15 @@ export default function SettingsPage() {
             Submit
           </button>
         </section>
+        {/* Bottom Log Out Button */}
+        <div className="w-full flex justify-center mt-16">
+          <button
+            className="px-6 py-3 rounded-lg font-semibold bg-[#1a7f37] text-white hover:bg-[#17692e] transition-colors duration-200"
+            onClick={handleLogout}
+          >
+            Log Out
+          </button>
+        </div>
       </main>
     </div>
   );
