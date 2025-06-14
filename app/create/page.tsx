@@ -2,8 +2,9 @@
 
 import DashboardNav from '../components/DashboardNav';
 import { useState, useRef, useState as useModalState } from 'react';
-import { Upload, FileText, Youtube, RefreshCw, Twitter, Instagram } from 'lucide-react';
+import { Upload, FileText, Youtube, RefreshCw, Twitter, Instagram, Image, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
+import { useThreadCreation } from '@/contexts/ThreadCreationContext';
 
 const steps = [
   'Upload',
@@ -21,6 +22,12 @@ type Draft = {
   lastEdited: string;
 };
 
+type Post = {
+  id: string;
+  content: string;
+  image_url?: string;
+};
+
 function showToast(message: string) {
   const toast = document.createElement('div');
   toast.textContent = message;
@@ -33,10 +40,10 @@ function showToast(message: string) {
 }
 
 // Dummy initial post content generator
-function getInitialPosts(count: number) {
+function getInitialPosts(count: number): Post[] {
   return Array.from({ length: count }, (_, i) => ({
-    text: `This is the content for post #${i + 1}. Edit as needed.`,
-    image: null as string | null,
+    id: crypto.randomUUID(),
+    content: `Post ${i + 1}`,
   }));
 }
 
@@ -63,22 +70,27 @@ const getDraftTitle = (transcript: string) => transcript.trim().split(' ').slice
 const getNow = () => new Date().toISOString().replace('T', ' ').slice(0, 16);
 
 export default function CreateThreadPage() {
+  const {
+    transcript,
+    setTranscript,
+    tone,
+    setTone,
+    posts,
+    setPosts,
+    isLoading,
+    error,
+    generateThread
+  } = useThreadCreation();
+
   const [step, setStep] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [transcript, setTranscript] = useState('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl quis neque. Etiam euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl quis neque.\n\nSed euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl quis neque. Etiam euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl quis neque.');
   const [postCount, setPostCount] = useState(10);
   const [charCount, setCharCount] = useState(280);
-  const [style, setStyle] = useState<string | null>(null);
-
-  // Step 4: Edit & Enhance state
-  const [posts, setPosts] = useState(() => getInitialPosts(postCount));
   const [showImageModal, setShowImageModal] = useModalState(false);
   const [activePostIdx, setActivePostIdx] = useState<number | null>(null);
-
-  // Step 5: Publish state
   const [postToX, setPostToX] = useState(false);
   const [postToInsta, setPostToInsta] = useState(false);
   const [postStatus, setPostStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -112,22 +124,34 @@ export default function CreateThreadPage() {
     });
   }, [postCount]);
 
-  const handleMovePost = (idx: number, dir: 'up' | 'down') => {
-    setPosts(prev => {
+  const handleMovePost = (idx: number, direction: 'up' | 'down') => {
+    setPosts((prev) => {
       const newPosts = [...prev];
-      const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
-      [newPosts[idx], newPosts[swapIdx]] = [newPosts[swapIdx], newPosts[idx]];
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+      [newPosts[idx], newPosts[newIdx]] = [newPosts[newIdx], newPosts[idx]];
       return newPosts;
     });
-  };
-
-  const handleEditPost = (idx: number, value: string) => {
-    setPosts(prev => prev.map((p, i) => i === idx ? { ...p, text: value } : p));
   };
 
   const handleAddImage = (idx: number) => {
     setActivePostIdx(idx);
     setShowImageModal(true);
+  };
+
+  const handleEditPost = (idx: number, content: string) => {
+    setPosts((prev) => {
+      const newPosts = [...prev];
+      newPosts[idx] = { ...newPosts[idx], content };
+      return newPosts;
+    });
+  };
+
+  const handleDeletePost = (idx: number) => {
+    setPosts((prev) => {
+      const newPosts = [...prev];
+      newPosts.splice(idx, 1);
+      return newPosts;
+    });
   };
 
   const handleCloseModal = () => {
@@ -172,7 +196,7 @@ export default function CreateThreadPage() {
     : step === 1
       ? transcript.trim().length > 0
       : step === 2
-        ? style !== null
+        ? true
         : true;
 
   const handlePost = () => {
@@ -359,21 +383,20 @@ export default function CreateThreadPage() {
                   className="w-full accent-[#1a7f37] h-2 rounded-lg appearance-none bg-[#f3f4f6]"
                 />
               </div>
-              {/* Style Selector */}
+              {/* Tone Selector */}
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-black mb-2">Thread style:</label>
+                <label className="font-semibold text-black mb-2">Thread tone:</label>
                 <div className="flex gap-4">
-                  {['casual', 'comedic', 'educational'].map(option => (
+                  {(['casual', 'comedic', 'educational'] as const).map(option => (
                     <button
                       key={option}
                       type="button"
                       className={`px-6 py-2 rounded-full border-2 font-semibold capitalize transition-colors duration-200 text-base
-                        ${style === option
+                        ${tone === option
                           ? 'bg-[#1a7f37] text-white border-[#1a7f37] shadow-md'
                           : 'bg-white text-[#1a7f37] border-[#e5e7eb] hover:bg-[#f3f4f6]'}
                       `}
-                      style={style === null ? { backgroundColor: '#f3f4f6', color: '#1a7f37', borderColor: '#e5e7eb' } : {}}
-                      onClick={() => setStyle(option)}
+                      onClick={() => setTone(option)}
                     >
                       {option.charAt(0).toUpperCase() + option.slice(1)}
                     </button>
@@ -389,12 +412,14 @@ export default function CreateThreadPage() {
                 Back
               </button>
               <button
-                className={`px-7 py-2.5 rounded-lg font-semibold shadow-md transition-colors duration-200 ${canProceed ? 'bg-[#1a7f37] text-white hover:bg-[#17692e]' : 'bg-[#e5e7eb] text-gray-400 cursor-not-allowed'}`}
-                style={{ backgroundColor: canProceed ? '#1a7f37' : '#e5e7eb', color: canProceed ? '#fff' : '#a3a3a3' }}
-                disabled={!canProceed}
-                onClick={() => canProceed && setStep(3)}
+                className="px-7 py-2.5 rounded-lg font-semibold shadow-md bg-[#1a7f37] text-white hover:bg-[#17692e] transition-colors duration-200"
+                onClick={async () => {
+                  await generateThread();
+                  setStep(3);
+                }}
+                disabled={isLoading}
               >
-                Next
+                {isLoading ? 'Generating...' : 'Generate Thread'}
               </button>
             </div>
           </div>
@@ -416,7 +441,7 @@ export default function CreateThreadPage() {
             <h2 className="text-2xl font-extrabold mb-8 text-[#1a7f37] tracking-tight">Edit & Enhance Your Thread</h2>
             <div className="w-full flex flex-col gap-8 mb-8">
               {posts.map((post, idx) => (
-                <div key={idx} className="relative bg-[#f8fafc] border border-[#e5e7eb] rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
+                <div key={post.id} className="relative bg-[#f8fafc] border border-[#e5e7eb] rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
                   <div className="flex">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-1 bg-white/80 rounded-xl shadow-sm">
                       {idx > 0 && (
@@ -438,25 +463,26 @@ export default function CreateThreadPage() {
                         </button>
                       )}
                     </div>
-                    <div className="ml-14 flex-1 flex flex-col gap-3">
-                      <textarea
-                        className="w-full min-h-[80px] max-h-[200px] resize-vertical border border-gray-200 rounded-xl px-4 py-3 text-base font-mono focus:outline-none focus:ring-2 focus:ring-[#1a7f37] bg-white placeholder:text-gray-400 shadow-sm"
-                        value={post.text}
-                        onChange={e => handleEditPost(idx, e.target.value)}
-                      />
-                      {post.image && (
-                        <div className="w-full flex items-center gap-2 mt-2">
-                          <img src={`/${post.image}`} alt="Post visual" className="w-20 h-20 object-cover rounded-xl border border-[#e5e7eb]" />
-                          <span className="text-gray-500 text-xs">(dummy image)</span>
-                        </div>
-                      )}
-                      <button
-                        className="mt-2 px-5 py-2 rounded-lg border-2 border-[#1a7f37] text-[#1a7f37] font-semibold bg-white hover:bg-[#e6f4ea] transition-colors duration-200"
-                        onClick={() => handleAddImage(idx)}
-                      >
-                        Add Image
-                      </button>
-                    </div>
+                    <textarea
+                      className="w-full min-h-[100px] resize-vertical border border-gray-200 rounded-xl px-5 py-4 text-base focus:outline-none focus:ring-2 focus:ring-[#1a7f37] bg-white placeholder:text-gray-400 shadow-sm ml-12"
+                      value={post.content}
+                      onChange={(e) => handleEditPost(idx, e.target.value)}
+                      placeholder="Edit your post..."
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <button
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#e5e7eb] bg-white text-[#1a7f37] font-semibold hover:bg-[#e6f4ea] transition-colors duration-200"
+                      onClick={() => handleAddImage(idx)}
+                    >
+                      <Image size={18} /> Add Image
+                    </button>
+                    <button
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#e5e7eb] bg-white text-red-500 font-semibold hover:bg-red-50 transition-colors duration-200"
+                      onClick={() => handleDeletePost(idx)}
+                    >
+                      <Trash2 size={18} /> Delete
+                    </button>
                   </div>
                 </div>
               ))}
@@ -481,41 +507,44 @@ export default function CreateThreadPage() {
                 Next
               </button>
             </div>
-            {/* Image Modal */}
-            {showImageModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-                <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 min-w-[320px] max-w-xs border border-[#e5e7eb]">
-                  <h3 className="text-lg font-bold mb-2 text-[#1a7f37]">Add an image</h3>
-                  <button
-                    className="w-full px-5 py-2 rounded-lg font-semibold bg-[#e6f4ea] text-[#1a7f37] border-2 border-[#1a7f37] hover:bg-[#1a7f37] hover:text-white transition-colors duration-200"
-                    onClick={() => handleDummyImage('ai')}
+          </div>
+          {/* Image Modal */}
+          {showImageModal && activePostIdx !== null && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+              <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 min-w-[340px] max-w-xs border border-[#e5e7eb] relative">
+                <button className="absolute top-4 right-4 text-gray-400 hover:text-black text-xl" onClick={() => setShowImageModal(false)}>&times;</button>
+                <h3 className="text-lg font-bold mb-2 text-[#1a7f37]">Add Image</h3>
+                <div className="flex flex-col gap-4 w-full">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="image-upload"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setPosts((prev) => {
+                          const newPosts = [...prev];
+                          newPosts[activePostIdx] = {
+                            ...newPosts[activePostIdx],
+                            image_url: URL.createObjectURL(file)
+                          };
+                          return newPosts;
+                        });
+                        setShowImageModal(false);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="w-full px-4 py-2 rounded-lg border border-[#e5e7eb] bg-white text-[#1a7f37] font-semibold hover:bg-[#e6f4ea] transition-colors duration-200 text-center cursor-pointer"
                   >
-                    Generate with AI (dummy)
-                  </button>
-                  <button
-                    className="w-full px-5 py-2 rounded-lg font-semibold bg-white text-[#1a7f37] border-2 border-[#1a7f37] hover:bg-[#e6f4ea] transition-colors duration-200"
-                    onClick={() => handleDummyImage('upload')}
-                  >
-                    Upload Image (dummy)
-                  </button>
-                  <button
-                    className="mt-2 text-gray-400 hover:text-black text-sm underline"
-                    onClick={handleCloseModal}
-                  >
-                    Cancel
-                  </button>
+                    Choose Image
+                  </label>
                 </div>
               </div>
-            )}
-          </div>
-          <div className="flex justify-center mt-4">
-            <button
-              className="px-5 py-2 rounded-lg font-semibold bg-[#e6f4ea] text-[#1a7f37] border border-[#1a7f37] text-sm hover:bg-[#1a7f37] hover:text-white transition-colors duration-200"
-              onClick={handleSaveDraft}
-            >
-              Save Draft
-            </button>
-          </div>
+            </div>
+          )}
           </>
         )}
 
@@ -529,8 +558,8 @@ export default function CreateThreadPage() {
               {posts.map((post, idx) => (
                 <div key={idx} className="flex items-center gap-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-xl px-4 py-3">
                   <span className="text-gray-400 font-mono text-xs">{idx + 1}.</span>
-                  <span className="flex-1 truncate text-black text-sm">{post.text.slice(0, 60)}{post.text.length > 60 ? '...' : ''}</span>
-                  {post.image && <img src={`/${post.image}`} alt="img" className="w-8 h-8 object-cover rounded-md border border-[#e5e7eb]" />}
+                  <span className="flex-1 truncate text-black text-sm">{post.content.slice(0, 60)}{post.content.length > 60 ? '...' : ''}</span>
+                  {post.image_url && <img src={post.image_url} alt="img" className="w-8 h-8 object-cover rounded-md border border-[#e5e7eb]" />}
                 </div>
               ))}
             </div>

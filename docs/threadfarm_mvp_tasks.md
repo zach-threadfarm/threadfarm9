@@ -96,15 +96,15 @@ Build Threadfarm – an AI-powered tool that converts audio, video, or text file
 - [x] Test upload via Supabase UI
 
 ### 2.4 API Routes
-- [ ] `/api/auth/route.ts` for auth handling
-- [ ] `/api/threads/route.ts` for CRUD
+- [x] `/api/auth/route.ts` for auth handling
+- [x] `/api/threads/route.ts` for CRUD
 - [ ] `/api/upload/route.ts` for file uploads
-- [ ] Add error handling, TypeScript types
+- [x] Add error handling, TypeScript types
 
 ### 2.5 DB Helpers
-- [ ] `lib/supabase.ts` with Supabase client
-- [ ] Helper functions for CRUD threads/posts
-- [ ] Error handling and data validation
+- [x] `lib/supabase.ts` with Supabase client
+- [x] Helper functions for CRUD threads/posts
+- [x] Error handling and data validation
 
 ---
 

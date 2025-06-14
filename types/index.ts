@@ -3,6 +3,9 @@ export type Thread = {
   user_id: string;
   title: string;
   status: string;
+  tone: 'comedic' | 'casual' | 'educational';
+  transcript: string;
+  file_url?: string;
   created_at: string;
   updated_at: string;
 };
